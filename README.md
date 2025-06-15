@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 myexpertMD Game
 
-## Getting Started
+Jogo médico diário onde profissionais e estudantes de medicina podem testar seus conhecimentos diagnosticando casos clínicos enigmáticos.
 
-First, run the development server:
+## 🚀 Funcionalidades
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Casos Clínicos Diários**: Novos desafios médicos gerados automaticamente
+- **Sistema de Tentativas**: 5 tentativas por dia para acertar o diagnóstico
+- **Perguntas Sim/Não**: Investigue o caso fazendo perguntas específicas
+- **Sistema de Dicas**: Até 3 dicas por caso para ajudar no diagnóstico
+- **Pontuação**: Sistema de scoring baseado em performance
+- **Interface Gamificada**: Design moderno e responsivo
+
+## 🛠️ Tecnologias
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Supabase
+- **AI**: OpenAI GPT-4 para geração de casos
+- **Icons**: Lucide React
+- **Notifications**: React Hot Toast
+
+## 📱 Responsivo
+
+Interface totalmente adaptada para:
+- 📱 Mobile (320px+)
+- 📱 Tablet (768px+)
+- 💻 Desktop (1024px+)
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+OPENAI_API_KEY=your_openai_api_key
+MAX_ATTEMPTS_PER_DAY=5
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Instalação
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Deploy na Vercel
 
-## Learn More
+1. Conecte seu repositório à Vercel
+2. Configure as variáveis de ambiente
+3. Deploy automático a cada push
 
-To learn more about Next.js, take a look at the following resources:
+### Configuração de Subdomínio
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. No painel da Vercel, vá em **Domains**
+2. Adicione: `game.myexpertmd.com.br`
+3. Configure o DNS no seu provedor:
+   - Tipo: CNAME
+   - Nome: game
+   - Valor: cname.vercel-dns.com
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📊 Estrutura do Banco
 
-## Deploy on Vercel
+- `diseases_of_the_day`: Casos clínicos diários
+- `user_progress`: Progresso dos usuários
+- `user_questions`: Histórico de perguntas
+- `user_hints`: Dicas utilizadas
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎮 Como Jogar
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Leia o caso clínico** apresentado
+2. **Investigue** fazendo perguntas sim/não
+3. **Solicite dicas** se necessário (máximo 3)
+4. **Faça seu diagnóstico** (5 tentativas por dia)
+5. **Volte amanhã** para um novo desafio!
+
+---
+
+Desenvolvido para **myexpertMD** - Educação Médica Gamificada
