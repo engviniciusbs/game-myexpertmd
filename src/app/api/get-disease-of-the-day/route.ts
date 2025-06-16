@@ -26,25 +26,24 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
 
-    // Busca a doença do dia atual
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayDisease, error: diseaseError } = await supabase
-      .from('disease_of_the_day')
-      .select('*')
-      .eq('date', today)
-      .single();
-
-    if (diseaseError) {
-      console.error('Error fetching disease of the day:', diseaseError);
+    // Busca a doença do dia atual (com fallback automático)
+    const { ensureTodayDisease } = await import('@/lib/disease-manager');
+    
+    let todayDisease: DiseaseOfTheDay;
+    try {
+      todayDisease = await ensureTodayDisease();
+    } catch (error) {
+      console.error('Error ensuring today disease:', error);
       return NextResponse.json<ApiResponse>({
         success: false,
-        error: 'No disease found for today. Please generate a disease first.',
-      }, { status: 404 });
+        error: 'Failed to get or generate disease for today.',
+      }, { status: 500 });
     }
 
     // Busca o progresso do usuário para hoje
     let userProgress: UserProgress | null = null;
     if (todayDisease) {
+      const today = todayDisease.date;
       const userIdValue = userId || null;
       const { data: progress, error: progressError } = await supabase
         .from('user_progress')

@@ -1,6 +1,12 @@
 {
   "name": "myexpertmd-game",
   "version": 2,
+  "crons": [
+    {
+      "path": "/api/cron/daily-disease",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -12,7 +18,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "TIMEZONE": "America/Sao_Paulo"
   },
   "functions": {
     "src/app/api/*/route.ts": {
