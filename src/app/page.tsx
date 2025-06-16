@@ -406,14 +406,24 @@ export default function GamePage() {
                   <span>Tentativas Anteriores:</span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {gameState.progress.guess_history.map((guess, index) => (
-                    <span
-                      key={index}
-                      className="px-4 py-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 rounded-xl text-sm font-medium border border-red-500/30 backdrop-blur-sm"
-                    >
-                      ❌ {guess}
-                    </span>
-                  ))}
+                  {gameState.progress.guess_history.map((guess, index) => {
+                    // Verifica se este palpite foi o correto (última tentativa + jogo resolvido)
+                    const isCorrectGuess = gameState.progress?.is_solved && 
+                                         index === gameState.progress.guess_history.length - 1;
+                    
+                    return (
+                      <span
+                        key={index}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm ${
+                          isCorrectGuess
+                            ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border border-green-500/30'
+                            : 'bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 border border-red-500/30'
+                        }`}
+                      >
+                        {isCorrectGuess ? '✅' : '❌'} {guess}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}

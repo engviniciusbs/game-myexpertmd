@@ -60,11 +60,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Prepara dados para retorno (sem revelar a resposta)
+    // Prepara dados para retorno (revela nome se jogo terminado)
+    const isGameCompleted = userProgress && (userProgress.is_solved || userProgress.attempts_left <= 0);
+    
     const publicDiseaseData = {
       id: todayDisease.id,
       date: todayDisease.date,
-      // Não revela o nome da doença!
+      // Revela o nome da doença apenas se o jogo terminou
+      ...(isGameCompleted && { disease_name: todayDisease.disease_name }),
       description: todayDisease.description,
       main_symptoms: todayDisease.main_symptoms,
       risk_factors: todayDisease.risk_factors,
@@ -148,9 +151,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingProgress) {
-      // Retorna progresso existente
+      // Retorna progresso existente (com nome da doença se jogo terminado)
+      const isGameCompleted = existingProgress.is_solved || existingProgress.attempts_left <= 0;
+      
       return NextResponse.json<ApiResponse<{
-        disease: Omit<DiseaseOfTheDay, 'disease_name'>;
+        disease: any; // Tipo flexível para incluir disease_name quando necessário
         user_progress: UserProgress;
         game_config: {
           max_attempts: number;
@@ -163,6 +168,8 @@ export async function POST(request: NextRequest) {
           disease: {
             id: todayDisease.id,
             date: todayDisease.date,
+            // Revela o nome da doença apenas se o jogo terminou
+            ...(isGameCompleted && { disease_name: todayDisease.disease_name }),
             description: todayDisease.description,
             main_symptoms: todayDisease.main_symptoms,
             risk_factors: todayDisease.risk_factors,
@@ -207,7 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json<ApiResponse<{
-      disease: Omit<DiseaseOfTheDay, 'disease_name'>;
+      disease: any; // Tipo flexível para incluir disease_name quando necessário
       user_progress: UserProgress;
       game_config: {
         max_attempts: number;
@@ -220,6 +227,7 @@ export async function POST(request: NextRequest) {
         disease: {
           id: todayDisease.id,
           date: todayDisease.date,
+          // Não revela o nome da doença para novo jogo
           description: todayDisease.description,
           main_symptoms: todayDisease.main_symptoms,
           risk_factors: todayDisease.risk_factors,
