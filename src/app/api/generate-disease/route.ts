@@ -149,7 +149,7 @@ export async function GET() {
 /**
  * Função utilitária para testar a geração de doença (uso interno)
  */
-export async function testDiseaseGeneration() {
+async function testDiseaseGeneration() {
   try {
     const disease = await generateDiseaseOfTheDay();
     console.log('Test disease generation:', disease);
