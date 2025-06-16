@@ -13,6 +13,37 @@ import type { DiseaseOfTheDay, UserProgress, GameState, SubmitGuessResponse } fr
 // COMPONENTE PRINCIPAL
 // =====================================================
 export default function GamePage() {
+  // Dados estruturados para SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "myexpertMD - Desafio Médico Diário",
+    "description": "Desafie seus conhecimentos médicos com nosso jogo diário! Resolva casos clínicos reais, faça perguntas sim/não e teste sua expertise médica.",
+    "url": "https://game-myexpertmd.vercel.app",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BRL"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "myexpertMD"
+    },
+    "provider": {
+      "@type": "Organization",
+      "name": "myexpertMD"
+    },
+    "inLanguage": "pt-BR",
+    "audience": {
+      "@type": "Audience",
+      "audienceType": ["Medical Students", "Medical Residents", "Healthcare Professionals"]
+    },
+    "educationalUse": "Medical Education",
+    "learningResourceType": "Game",
+    "typicalAgeRange": "18+"
+  };
   const [gameState, setGameState] = useState<GameState>({
     disease: null,
     progress: null,
@@ -667,6 +698,12 @@ export default function GamePage() {
           </div>
         )}
       </main>
+      
+      {/* Dados estruturados para SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
     </div>
   );
 }
