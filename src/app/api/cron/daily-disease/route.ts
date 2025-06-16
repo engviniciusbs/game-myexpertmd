@@ -66,9 +66,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Gera nova doença usando OpenAI
+    // Gera nova doença usando OpenAI (evitando repetições)
     console.log('🤖 Generating new disease via OpenAI...');
-    const newDisease = await generateDiseaseOfTheDay();
+    
+    // Busca doenças recentes para evitar repetições
+    const { getRecentDiseases } = await import('@/lib/disease-manager');
+    const recentDiseases = await getRecentDiseases(10); // Últimos 10 dias
+    const recentDiseaseNames = recentDiseases.map(d => d.disease_name);
+    
+    console.log(`📋 Avoiding recent diseases: ${recentDiseaseNames.join(', ')}`);
+    
+    const newDisease = await generateDiseaseOfTheDay(recentDiseaseNames);
 
     // Salva nova doença no banco
     const { data: savedDisease, error: insertError } = await supabase

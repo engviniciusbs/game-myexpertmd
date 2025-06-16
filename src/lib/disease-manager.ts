@@ -36,7 +36,13 @@ export async function ensureTodayDisease(): Promise<DiseaseOfTheDay> {
     // Se não encontrou, gera nova doença
     console.log(`🔄 No disease found for ${today}, generating new one...`);
     
-    const newDisease = await generateDiseaseOfTheDay();
+    // Busca doenças recentes para evitar repetições
+    const recentDiseases = await getRecentDiseases(7); // Últimos 7 dias
+    const recentDiseaseNames = recentDiseases.map(d => d.disease_name);
+    
+    console.log(`📋 Avoiding recent diseases: ${recentDiseaseNames.join(', ')}`);
+    
+    const newDisease = await generateDiseaseOfTheDay(recentDiseaseNames);
     
     // Salva no banco
     const { data: savedDisease, error: saveError } = await supabase
@@ -124,8 +130,14 @@ export async function regenerateTodayDisease(): Promise<DiseaseOfTheDay> {
 
     console.log(`🔄 Regenerating disease for ${today}...`);
     
+    // Busca doenças recentes para evitar repetições
+    const recentDiseases = await getRecentDiseases(14); // Últimos 14 dias para regeneração
+    const recentDiseaseNames = recentDiseases.map(d => d.disease_name);
+    
+    console.log(`📋 Avoiding recent diseases: ${recentDiseaseNames.join(', ')}`);
+    
     // Gera nova doença
-    const newDisease = await generateDiseaseOfTheDay();
+    const newDisease = await generateDiseaseOfTheDay(recentDiseaseNames);
     
     // Salva no banco
     const { data: savedDisease, error: saveError } = await supabase

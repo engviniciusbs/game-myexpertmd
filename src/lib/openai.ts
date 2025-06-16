@@ -22,7 +22,7 @@ export const openai = new OpenAI({
 export const OPENAI_CONFIG = {
   model: 'gpt-4o-mini', // Modelo mais econômico e eficiente
   maxTokens: 1500,
-  temperature: 0.7,
+  temperature: 0.9, // Aumentado para mais variação
 } as const;
 
 // =====================================================
@@ -35,14 +35,28 @@ export const OPENAI_CONFIG = {
 export const GENERATE_DISEASE_PROMPT = `
 Você é um especialista em medicina que cria casos clínicos enigmáticos para um jogo educativo.
 
-Sua tarefa é gerar uma doença e criar um caso clínico realista SEM REVELAR o nome da doença.
+Sua tarefa é gerar uma doença DIFERENTE e criar um caso clínico realista SEM REVELAR o nome da doença.
 
-INSTRUÇÕES:
+INSTRUÇÕES IMPORTANTES:
 1. Escolha uma doença real e clinicamente relevante
-2. Varie entre especialidades médicas (cardiologia, neurologia, gastroenterologia, etc.)
-3. Crie um caso clínico narrativo como se fosse um paciente real
-4. NÃO mencione o nome da doença na descrição
-5. Seja preciso e baseado em evidências médicas
+2. SEMPRE VARIE entre especialidades médicas diferentes (cardiologia, neurologia, gastroenterologia, endocrinologia, pneumologia, dermatologia, hematologia, reumatologia, oncologia, etc.)
+3. EVITE repetir doenças comuns como Esclerose Múltipla, Diabetes, Hipertensão
+4. Prefira doenças menos óbvias mas clinicamente relevantes
+5. Crie um caso clínico narrativo como se fosse um paciente real
+6. NÃO mencione o nome da doença na descrição
+7. Seja preciso e baseado em evidências médicas
+
+ESPECIALIDADES PARA VARIAR:
+- Cardiologia: Miocardite, Pericardite, Insuficiência Cardíaca
+- Pneumologia: Pneumotórax, Embolia Pulmonar, Sarcoidose
+- Gastroenterologia: Doença de Crohn, Pancreatite, Hepatite
+- Endocrinologia: Síndrome de Cushing, Hipertireoidismo, Addison
+- Hematologia: Anemia Falciforme, Leucemia, Trombocitopenia
+- Reumatologia: Artrite Reumatoide, Lúpus, Fibromialgia
+- Dermatologia: Psoríase, Melanoma, Dermatite
+- Neurologia: Parkinson, Epilepsia, Miastenia Gravis
+- Nefrologia: Glomerulonefrite, Síndrome Nefrótica
+- E muitas outras...
 
 FORMATO DE RESPOSTA (JSON):
 {
@@ -121,21 +135,43 @@ DICA {hint_number}:
 // =====================================================
 
 /**
- * Gera uma nova doença do dia usando OpenAI
+ * Gera uma nova doença do dia usando OpenAI (com controle de repetições)
  */
-export async function generateDiseaseOfTheDay(): Promise<DiseaseOfTheDay> {
+export async function generateDiseaseOfTheDay(recentDiseases: string[] = []): Promise<DiseaseOfTheDay> {
   try {
+    // Adiciona instruções para evitar doenças recentes
+    let enhancedPrompt = GENERATE_DISEASE_PROMPT;
+    
+    if (recentDiseases.length > 0) {
+      enhancedPrompt += `\n\nIMPORTANTE - EVITE AS SEGUINTES DOENÇAS (já foram usadas recentemente):
+${recentDiseases.map(disease => `- ${disease}`).join('\n')}
+
+ESCOLHA UMA DOENÇA COMPLETAMENTE DIFERENTE das listadas acima.\n`;
+    }
+
+    // Adiciona variação baseada no timestamp para mais randomização
+    const timestamp = Date.now();
+    const seedMessage = `Timestamp para variação: ${timestamp}. Use este valor para gerar maior diversidade.`;
+
     const completion = await openai.chat.completions.create({
       model: OPENAI_CONFIG.model,
       messages: [
         {
           role: 'system',
-          content: GENERATE_DISEASE_PROMPT,
+          content: enhancedPrompt,
+        },
+        {
+          role: 'user',
+          content: seedMessage,
         },
       ],
       max_tokens: OPENAI_CONFIG.maxTokens,
       temperature: OPENAI_CONFIG.temperature,
       response_format: { type: 'json_object' },
+      // Adiciona parâmetros para mais variação
+      top_p: 0.95,
+      frequency_penalty: 0.8, // Penaliza repetições
+      presence_penalty: 0.6,  // Encoraja novos tópicos
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -150,8 +186,23 @@ export async function generateDiseaseOfTheDay(): Promise<DiseaseOfTheDay> {
       throw new Error('Invalid disease data received from OpenAI');
     }
 
+    // Verifica se a doença gerada está na lista de evitadas
+    if (recentDiseases.some(recent => 
+      recent.toLowerCase().includes(diseaseData.disease_name.toLowerCase()) ||
+      diseaseData.disease_name.toLowerCase().includes(recent.toLowerCase())
+    )) {
+      console.warn(`⚠️ Generated disease "${diseaseData.disease_name}" is similar to recent ones. Retrying...`);
+      
+      // Retry uma vez com prompt mais específico
+      if (recentDiseases.length > 0) {
+        return generateDiseaseOfTheDay(recentDiseases);
+      }
+    }
+
     // Adiciona campos necessários para o banco
     const today = new Date().toISOString().split('T')[0];
+    
+    console.log(`🎯 Generated unique disease: ${diseaseData.disease_name} (avoiding: ${recentDiseases.join(', ')})`);
     
     return {
       id: '', // Será gerado pelo banco
