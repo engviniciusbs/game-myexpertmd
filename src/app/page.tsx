@@ -13,6 +13,26 @@ import type { DiseaseOfTheDay, UserProgress, GameState, SubmitGuessResponse } fr
 // COMPONENTE PRINCIPAL
 // =====================================================
 export default function GamePage() {
+  // =====================================================
+  // GERAÇÃO DE SESSION ID ÚNICO
+  // =====================================================
+  const getOrCreateSessionId = () => {
+    if (typeof window === 'undefined') return null;
+    
+    let sessionId = localStorage.getItem('game_session_id');
+    if (!sessionId) {
+      // Gera um UUID usando crypto ou fallback
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        sessionId = crypto.randomUUID();
+      } else {
+        // Fallback para navegadores que não suportam crypto.randomUUID
+        sessionId = 'sess-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      }
+      localStorage.setItem('game_session_id', sessionId);
+    }
+    return sessionId;
+  };
+
   // Dados estruturados para SEO
   const structuredData = {
     "@context": "https://schema.org",
@@ -57,6 +77,14 @@ export default function GamePage() {
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [showResults, setShowResults] = useState(false);
 
+  // Função para debug/reset de sessão (em caso de problemas)
+  const resetSession = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('game_session_id');
+      window.location.reload();
+    }
+  };
+
   // =====================================================
   // EFEITOS E CARREGAMENTO INICIAL
   // =====================================================
@@ -69,7 +97,8 @@ export default function GamePage() {
       setGameState(prev => ({ ...prev, loading: true, error: null }));
 
       // Busca a doença do dia
-      const response = await fetch('/api/get-disease-of-the-day');
+      const sessionId = getOrCreateSessionId();
+      const response = await fetch(`/api/get-disease-of-the-day?user_id=${sessionId}`);
       const result = await response.json();
 
       if (!result.success) {
@@ -104,7 +133,7 @@ export default function GamePage() {
       const response = await fetch('/api/get-disease-of-the-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: null }),
+        body: JSON.stringify({ user_id: getOrCreateSessionId() }),
       });
 
       const result = await response.json();
@@ -134,7 +163,7 @@ export default function GamePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guess: currentGuess.trim(),
-          user_id: null,
+          user_id: getOrCreateSessionId(),
         }),
       });
 
@@ -199,7 +228,7 @@ export default function GamePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: currentQuestion.trim(),
-          user_id: null,
+          user_id: getOrCreateSessionId(),
         }),
       });
 
@@ -240,7 +269,7 @@ export default function GamePage() {
       const response = await fetch('/api/get-hint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: null }),
+        body: JSON.stringify({ user_id: getOrCreateSessionId() }),
       });
 
       const result = await response.json();

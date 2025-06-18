@@ -58,12 +58,20 @@ export async function POST(request: NextRequest) {
 
     // Busca ou cria o progresso do usuário para hoje
     const userIdValue = user_id || null;
-    let { data: userProgress, error: progressError } = await supabase
+    
+    let query = supabase
       .from('user_progress')
       .select('*')
-      .eq('date', today)
-      .is('user_id', userIdValue)
-      .single();
+      .eq('date', today);
+    
+    // Usa .is() para null, .eq() para valores não-null
+    if (userIdValue === null) {
+      query = query.is('user_id', null);
+    } else {
+      query = query.eq('user_id', userIdValue);
+    }
+    
+    let { data: userProgress, error: progressError } = await query.single();
 
     if (progressError && progressError.code === 'PGRST116') {
       // Cria novo progresso se não existir

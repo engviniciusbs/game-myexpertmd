@@ -45,12 +45,20 @@ export async function GET(request: NextRequest) {
     if (todayDisease) {
       const today = todayDisease.date;
       const userIdValue = userId || null;
-      const { data: progress, error: progressError } = await supabase
+      
+      let query = supabase
         .from('user_progress')
         .select('*')
-        .eq('date', today)
-        .is('user_id', userIdValue)
-        .single();
+        .eq('date', today);
+      
+      // Usa .is() para null, .eq() para valores não-null
+      if (userIdValue === null) {
+        query = query.is('user_id', null);
+      } else {
+        query = query.eq('user_id', userIdValue);
+      }
+      
+      const { data: progress, error: progressError } = await query.single();
 
       if (progressError && progressError.code !== 'PGRST116') {
         console.error('Error fetching user progress:', progressError);
@@ -143,12 +151,20 @@ export async function POST(request: NextRequest) {
 
     // Verifica se já existe progresso do usuário para hoje
     const userIdValue = user_id || null;
-    const { data: existingProgress, error: checkError } = await supabase
+    
+    let query = supabase
       .from('user_progress')
       .select('*')
-      .eq('date', today)
-      .is('user_id', userIdValue)
-      .single();
+      .eq('date', today);
+    
+    // Usa .is() para null, .eq() para valores não-null
+    if (userIdValue === null) {
+      query = query.is('user_id', null);
+    } else {
+      query = query.eq('user_id', userIdValue);
+    }
+    
+    const { data: existingProgress, error: checkError } = await query.single();
 
     if (existingProgress) {
       // Retorna progresso existente (com nome da doença se jogo terminado)
